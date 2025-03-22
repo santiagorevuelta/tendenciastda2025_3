@@ -4,4 +4,6 @@ Integrantes
 
 - Santiago Revuelta Rodriguez
 - Maira Alejandra Castaño
-- Otros 3
+- Johnatan Duván Bedoya Gómez
+- Hanner Alejandro Herrera Díaz
+- Jhony De Jesús Camaño Fabra
