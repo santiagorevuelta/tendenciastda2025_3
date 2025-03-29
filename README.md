@@ -7,3 +7,8 @@ Integrantes
 - Johnatan Duván Bedoya Gómez
 - Hanner Alejandro Herrera Díaz
 - Jhony De Jesús Camaño Fabra
+
+*Requisitos*
+- pip install django
+- pip install djangorestframework
+- pip install psycopg2
