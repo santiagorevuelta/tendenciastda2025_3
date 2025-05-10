@@ -54,3 +54,9 @@ python manage.py createsuperuser
 #*****Ejecutar tests*****
 
 python manage.py test products
+
+
+
+python manage.py makemigrations productos
+
+python manage.py makemigrations usuarios

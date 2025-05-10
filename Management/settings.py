@@ -121,16 +121,19 @@ WSGI_APPLICATION = 'Management.wsgi.application'
 
 ###Configuración de la base de datos
   #Configuración de la base de datos PostgreSQL
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'postgres',
-#         'USER': 'postgres',
-#         'PASSWORD': 'mFvLZgTUDjsYr9J',
-#         'HOST': 'managementdb.fly.dev',
-#         'PORT': '5432',
-#     }
-# }
+#DATABASES = {
+    #    'default': {
+        #       'ENGINE': 'django.db.backends.postgresql',
+        #       'NAME': 'inventarios',
+        #       'USER': 'inventarios_owner',
+        #       'PASSWORD': 'npg_OaGFeupyTQ61',
+        #       'HOST': 'ep-falling-bird-a8psgl0q-pooler.eastus2.azure.neon.tech',
+        #       'PORT': '5432',
+        #       'OPTIONS': {
+            #            'sslmode': 'require',
+            #        },
+#    }
+#}
 
 ###SOLO COMENTANDO LA DATABASE DE POSTGRESQL, PERMITE HACER LAS PRUEBAS EN SQLITE3
 
