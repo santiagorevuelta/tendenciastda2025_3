@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-6">
+<header class="bg-white shadow mb-6">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+        <div class="flex items-center gap-4">
+            <button onclick="window.history.back()"
+                    class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-1 rounded">
+                ← Volver
+            </button>
+            <h1 class="text-xl font-semibold text-gray-800">Bienvenido, {{ request.user.username }}</h1>
+        </div>
+        <form action="{% url 'logout' %}" method="POST">
+            {% csrf_token %}
+            <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+                Cerrar sesión
+            </button>
+        </form>
+    </div>
+</header>
+<div class="mx-auto bg-white p-6 rounded-xl shadow-md">
+    <h1 class="text-3xl font-bold text-blue-600 mb-6">Panel de Administrador</h1>
+
+    <h2 class="text-xl font-semibold mb-4">Productos</h2>
+    <div class="max-w-full overflow-hidden">
+        <table class="min-w-full table-auto border border-gray-300">
+            <thead class="bg-gray-200 text-gray-700">
+            <tr>
+                <th class="px-4 py-2 border text-left">Nombre</th>
+                <th class="px-4 py-2 border text-left">Descripción</th>
+                <th class="px-4 py-2 border text-left">Precio</th>
+                <th class="px-4 py-2 border text-left">Stock</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for producto in productos %}
+            <tr class="hover:bg-gray-100">
+                <td class="px-4 py-2 border">{{ producto.nombre }}</td>
+                <td class="px-4 py-2 border">{{ producto.descripcion }}</td>
+                <td class="px-4 py-2 border">{{ producto.precio }}</td>
+                <td class="px-4 py-2 border">{{ producto.stock }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="mt-4">
+            <a href="{% url 'exportar_productos_pdf' %}" target="_blank"
+               class="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition duration-200">
+                Exportar Productos a PDF
+            </a>
+        </div>
+    </div>
+
+    <h2 class="text-xl font-semibold mb-4 mt-8">Inventarios</h2>
+    <div class="max-w-full overflow-hidden">
+        <table class="min-w-full table-auto border border-gray-300">
+        <thead class="bg-gray-100 text-gray-700">
+          <tr>
+            <th class="px-4 py-2 border">Tipo</th>
+            <th class="px-4 py-2 border">Producto</th>
+            <th class="px-4 py-2 border">Cantidad</th>
+            <th class="px-4 py-2 border">Fecha de Actualización</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for inv in inventarios %}
+          <tr class="hover:bg-gray-50">
+            <td class="px-4 py-2 border text-sm font-semibold {% if inv.tipo == 'entrada' %}text-green-600{% else %}text-red-600{% endif %}">
+              {{ inv.get_tipo_display }}
+            </td>
+            <td class="px-4 py-2 border">{{ inv.producto.nombre }}</td>
+            <td class="px-4 py-2 border">{{ inv.cantidad }}</td>
+            <td class="px-4 py-2 border">{{ inv.fecha_actualizacion|date:"Y-m-d H:i" }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="4" class="text-center py-4 text-gray-500">No hay registros de inventario.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+        <div class="mt-4">
+            <a href="{% url 'exportar_inventarios_pdf' %}" target="_blank"
+               class="bg-indigo-500 text-white px-6 py-2 rounded-lg hover:bg-indigo-600 transition duration-200">
+                Exportar Inventarios a PDF
+            </a>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
