@@ -1,0 +1,155 @@
+<div class="mx-auto bg-white p-6">
+    <div class="flex justify-between items-center mb-4">
+        <h1 class="text-2xl font-bold text-blue-600">Inventarios</h1>
+        <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onclick="abrirModalInventario()">
+            Nuevo Inventario
+        </button>
+    </div>
+
+    <table class="min-w-full table-auto border border-gray-300">
+        <thead class="bg-gray-200 text-gray-700">
+        <tr>
+            <th class="px-4 py-2 border">Producto</th>
+            <th class="px-4 py-2 border">Tipo</th>
+            <th class="px-4 py-2 border">Cantidad</th>
+            <th class="px-4 py-2 border">Fecha de Actualización</th>
+            <th class="px-4 py-2 border">Acciones</th>
+        </tr>
+        </thead>
+        <tbody id="tabla-inventarios">
+        {% for inventario in inventarios %}
+        <tr class="hover:bg-gray-100">
+            <td class="px-4 py-2 border">{{ inventario.producto.nombre }}</td>
+            <td class="px-4 py-2 border {% if inventario.tipo == 'entrada' %}text-green-600{% else %}text-red-600{% endif %}">{{ inventario.tipo }}</td>
+            <td class="px-4 py-2 border">{{ inventario.cantidad }}</td>
+            <td class="px-4 py-2 border">{{ inventario.fecha_actualizacion }}</td>
+            <td class="px-4 py-2 border flex gap-2">
+                <button class="text-blue-500 hover:underline" onclick="abrirModalInventario({{inventario.id}})">Editar</button>
+                <button class="text-red-500 hover:underline" onclick="eliminarInventario({{inventario.id}})">Eliminar</button>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% if inventarios %}
+        <div class="mt-4 flex justify-end gap-2">
+            <a href="{% url 'exportar_inventarios_pdf' %}" target="_blank"
+               class="bg-indigo-500 text-white px-6 py-2 rounded-lg hover:bg-indigo-600 transition duration-200">
+                Exportar Inventarios a PDF
+            </a>
+            <a href="{% url 'exportar_inventarios_json' %}" target="_blank"
+               class="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition">
+                Exportar Inventarios JSON
+            </a>
+        </div>
+    {% endif %}
+</div>
+<!-- Modal -->
+<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden" id="modalInventario">
+    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md relative">
+        <h2 class="text-xl font-bold mb-4" id="titulo-modal-inv">Nuevo Inventario</h2>
+        <form id="formInventario">
+            <input id="inventarioId" type="hidden">
+            
+            <!-- Tipo de Inventario -->
+            <select class="w-full mb-3 p-2 border rounded" id="tipo" required>
+                <option value="entrada">Entrada</option>
+                <option value="salida">Salida</option>
+            </select>
+
+            <!-- Producto -->
+            <select class="w-full mb-3 p-2 border rounded" id="producto" required>
+                <option value="">Seleccione un Producto</option>
+                {% for producto in productos %}
+                    <option value="{{ producto.id }}">{{ producto.nombre }}</option>
+                {% endfor %}
+            </select>
+
+            <!-- Cantidad -->
+            <input class="w-full mb-3 p-2 border rounded" id="cantidad" placeholder="Cantidad" required type="number">
+
+            <div class="flex justify-end space-x-2">
+                <button class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400" onclick="cerrarModalInventario()" type="button">
+                    Cancelar
+                </button>
+                <button class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" type="submit">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+const API_URL_INV = "/api/inventarios/";
+async function abrirModalInventario(id = null) {
+    await refreshToken();
+    const token = sessionStorage.getItem("accessToken");
+
+    document.getElementById('formInventario').reset();
+    document.getElementById('inventarioId').value = '';
+    document.getElementById('titulo-modal-inv').textContent = id !== null ? "Editar Inventario" : "Nuevo Inventario";
+
+    if (id) {
+        fetch(API_URL_INV + id + '/', {
+            method: 'GET',
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('inventarioId').value = data.id;
+                document.getElementById('tipo').value = data.tipo;
+                document.getElementById('producto').value = data.producto;
+                document.getElementById('cantidad').value = data.cantidad;
+            });
+    }
+
+    document.getElementById('modalInventario').classList.remove('hidden');
+}
+
+function cerrarModalInventario() {
+    document.getElementById('modalInventario').classList.add('hidden');
+}
+
+document.getElementById('formInventario').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    await refreshToken();
+    const token = sessionStorage.getItem("accessToken");
+    const id = document.getElementById('inventarioId').value;
+    const data = {
+        tipo: document.getElementById('tipo').value,
+        producto: document.getElementById('producto').value,
+        cantidad: Number(document.getElementById('cantidad').value)
+    };
+
+    fetch(API_URL_INV + (id ? `${id}/` : ''), {
+        method: id ? 'PUT' : 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify(data)
+    }).then(res => res.json())
+        .then((res) => {
+            if (res.id) {
+                cerrarModalInventario();
+                window.location.reload();
+            }
+        });
+});
+
+// Eliminar inventario
+async function eliminarInventario(id) {
+    if (confirm("¿Seguro que deseas eliminar este inventario?")) {
+        await refreshToken();
+        const token = sessionStorage.getItem("accessToken");
+        fetch(API_URL_INV + id + '/', {
+            method: 'DELETE', headers: {
+                "Authorization": `Bearer ${token}`,
+            }
+        })
+            .then(() => window.location.reload());
+    }
+}
+
+</script>

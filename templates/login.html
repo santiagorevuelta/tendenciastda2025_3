@@ -14,7 +14,7 @@
       <p class="text-red-600 text-sm text-center mb-4">{{ error }}</p>
     {% endif %}
 
-    <form method="POST" class="space-y-4">
+    <form method="POST" class="space-y-4" id="loginForm">
       {% csrf_token %}
 
       <div>
@@ -33,7 +33,35 @@
               class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition duration-200">
         Iniciar sesión
       </button>
+      <p id="loginError" class="text-red-600 mt-4 hidden">Credenciales inválidas</p>
     </form>
   </div>
 </body>
+<script>
+document.getElementById('loginForm').addEventListener('submit', async function(e) {
+  //e.preventDefault();
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value.trim();
+
+  const response = await fetch('/api/token/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ username, password })
+  });
+
+  const loginError = document.getElementById('loginError');
+
+  if (response.ok) {
+    const data = await response.json();
+    sessionStorage.setItem('accessToken', data.access);
+    sessionStorage.setItem('refreshToken', data.refresh);
+  } else {
+    loginError.classList.remove('hidden');
+  }
+});
+</script>
+
+
 </html>

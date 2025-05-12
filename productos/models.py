@@ -26,6 +26,13 @@ class Inventario(models.Model):
         return f"{self.producto.nombre} - {self.cantidad} - {self.tipo} - {self.fecha_actualizacion.strftime('%d-%m-%Y %H:%M')}"
 
     def save(self, *args, **kwargs):
+        if self.pk:
+            anterior = Inventario.objects.get(pk=self.pk)
+            if anterior.tipo == 'entrada':
+                self.producto.stock += anterior.cantidad
+            elif anterior.tipo == 'salida':
+                self.producto.stock -= anterior.cantidad
+
         if self.pk is None:
             if self.tipo == 'entrada':
                 self.producto.stock += self.cantidad
@@ -34,5 +41,5 @@ class Inventario(models.Model):
                     self.producto.stock -= self.cantidad
                 else:
                     raise ValueError("Stock insuficiente para realizar la salida.")
-            self.producto.save()
+        self.producto.save()
         super().save(*args, **kwargs)

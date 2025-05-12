@@ -1,0 +1,158 @@
+<div class="mx-auto bg-white p-6">
+    <div class="flex justify-between items-center mb-4">
+        <h1 class="text-2xl font-bold text-blue-600">Productos</h1>
+        <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onclick="abrirModal()">
+            Nuevo Producto
+        </button>
+    </div>
+
+    <table class="min-w-full table-auto border border-gray-300">
+        <thead class="bg-gray-200 text-gray-700">
+        <tr>
+            <th class="px-4 py-2 border">Nombre</th>
+            <th class="px-4 py-2 border">Descripción</th>
+            <th class="px-4 py-2 border">Precio</th>
+            <th class="px-4 py-2 border">Stock</th>
+            <th class="px-4 py-2 border">Categoria</th>
+            <th class="px-4 py-2 border">Acciones</th>
+        </tr>
+        </thead>
+        <tbody id="tabla-productos">
+        {% for producto in productos %}
+        <tr class="hover:bg-gray-100">
+            <td class="px-4 py-2 border">{{ producto.nombre }}</td>
+            <td class="px-4 py-2 border">{{ producto.descripcion }}</td>
+            <td class="px-4 py-2 border">{{ producto.precio }}</td>
+            <td class="px-4 py-2 border">{{ producto.stock }}</td>
+            <td class="px-4 py-2 border">{{ producto.categoria.nombre }}</td>
+            <td class="px-4 py-2 border flex gap-2">
+                <button class="text-blue-500 hover:underline" onclick="abrirModal({{producto.id}})">Editar</button>
+                <button class="text-red-500 hover:underline" onclick="eliminarProducto({{producto.id}})">Eliminar
+                </button>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% if productos %}
+        <div class="mt-4 flex justify-end gap-2">
+            <a class="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition duration-200" href="{% url 'exportar_productos_pdf' %}"
+               target="_blank">
+                Exportar Productos a PDF
+            </a>
+            <a class="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition" href="{% url 'exportar_productos_json' %}"
+               target="_blank">
+                Exportar Productos JSON
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Modal -->
+<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden" id="modalProducto">
+    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md relative">
+        <h2 class="text-xl font-bold mb-4" id="titulo-modal">Nuevo Producto</h2>
+        <form id="formProducto">
+            <input id="productoId" type="hidden">
+            <input class="w-full mb-3 p-2 border rounded" id="nombre" placeholder="Nombre" required type="text">
+            <textarea class="w-full mb-3 p-2 border rounded" id="descripcion" placeholder="Descripción"></textarea>
+            <input class="w-full mb-3 p-2 border rounded" id="precio" placeholder="Precio" required step="0.01"
+                   type="number">
+            <input class="w-full mb-3 p-2 border rounded" id="stock" placeholder="Stock" required type="number">
+            <div class="w-full mb-3">
+                <label for="categoria" class="block text-gray-700">Categoría:</label>
+                <select class="w-full p-2 border rounded" id="categoria" required>
+                      <option value="">Seleccione...</option>
+                    {% for categoria in categorias %}
+                        <option value="{{categoria.id}}">{{categoria.nombre}}</option>
+                     {% endfor %}
+                </select>
+            </div>
+            <div class="flex justify-end space-x-2">
+                <button class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400" onclick="cerrarModal()" type="button">
+                    Cancelar
+                </button>
+                <button class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" type="submit">Guardar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+    const API_URL = "/api/productos/";
+
+    async function abrirModal(id = null) {
+        await refreshToken();
+        const token = sessionStorage.getItem("accessToken");
+        document.getElementById('formProducto').reset();
+        document.getElementById('productoId').value = '';
+        document.getElementById('titulo-modal').textContent = id ? "Editar Producto" : "Nuevo Producto";
+
+        if (id) {
+            fetch(API_URL + id + '/', {
+                method: 'GET',
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            })
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('productoId').value = data.id;
+                    document.getElementById('nombre').value = data.nombre;
+                    document.getElementById('descripcion').value = data.descripcion;
+                    document.getElementById('precio').value = data.precio;
+                    document.getElementById('stock').value = data.stock;
+                    document.getElementById('categoria').value = data.categoria;
+                });
+        }
+
+        document.getElementById('modalProducto').classList.remove('hidden');
+    }
+
+    function cerrarModal() {
+        document.getElementById('modalProducto').classList.add('hidden');
+    }
+
+    document.getElementById('formProducto').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        await refreshToken();
+        const token = sessionStorage.getItem("accessToken");
+        const id = document.getElementById('productoId').value;
+        const data = {
+            nombre: document.getElementById('nombre').value,
+            descripcion: document.getElementById('descripcion').value,
+            precio: Number(document.getElementById('precio').value),
+            stock: Number(document.getElementById('stock').value),
+            categoria: document.getElementById('categoria').value
+        };
+
+        fetch(API_URL + (id ? `${id}/` : ''), {
+            method: id ? 'PUT' : 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                "Authorization": `Bearer ${token}`,
+            },
+            body: JSON.stringify(data)
+        }).then(res => res.json())
+            .then((res) => {
+                if(res.id){
+                   cerrarModal();
+                   window.location.reload();
+                }
+            });
+    });
+
+    async function eliminarProducto(id) {
+        if (confirm("¿Seguro que deseas eliminar este producto?")) {
+            await refreshToken();
+            const token = sessionStorage.getItem("accessToken");
+            fetch(API_URL + id + '/', {
+                method: 'DELETE', headers: {
+                    "Authorization": `Bearer ${token}`,
+                }
+            })
+                .then(() => window.location.reload());
+        }
+    }
+
+</script>

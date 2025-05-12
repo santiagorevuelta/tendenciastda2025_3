@@ -1,10 +1,11 @@
+import json
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseForbidden, HttpResponse
+from django.http import HttpResponseForbidden, HttpResponse, JsonResponse
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.contrib.auth import logout
 from .models import Producto, Categoria, Inventario
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login
 from django.conf import settings
 from .serializers import ProductoSerializer, CategoriaSerializer, InventarioSerializer
@@ -12,12 +13,15 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
-from rest_framework.exceptions import ValidationError
 
 def initial_view(request):
     if request.user.is_authenticated:
-        productos_bajo_stock = Producto.objects.filter(stock__lte=5)
-        return render(request, 'dashboard.html', {'productos_bajo_stock': productos_bajo_stock})
+        if request.user.profile.role == 'admin':
+            return redirect('admin_dashboard')
+        elif request.user.profile.role == 'secretary':
+            return redirect('empleado_dashboard')
+        else:
+            return redirect('empleado_dashboard')
 
     return redirect('login')
 
@@ -33,7 +37,12 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            return redirect('/')
+            if request.user.profile.role == 'admin':
+                return redirect('admin_dashboard')
+            elif request.user.profile.role == 'secretary':
+                return redirect('empleado_dashboard')
+            else:
+                return redirect('empleado_dashboard')
         else:
             return render(request, 'login.html', {'error': 'Credenciales inválidas'})
     return render(request, 'login.html')
@@ -43,9 +52,11 @@ def admin_dashboard(request):
     if request.user.profile.role != 'admin':
         return HttpResponseForbidden("No tienes permiso para acceder a esta página.")
 
-    productos = Producto.objects.all()
+    productos = Producto.objects.select_related('categoria').all()
+    categorias = Categoria.objects.all()
+    productos_bajo_stock = Producto.objects.filter(stock__lte=5)
     inventarios = Inventario.objects.select_related('producto').order_by('-fecha_actualizacion')
-    return render(request, 'admin_dashboard.html', {'productos': productos,'inventarios':inventarios})
+    return render(request, 'admin_dashboard.html', {'productos': productos,'inventarios':inventarios,'categorias':categorias,'productos_bajo_stock': productos_bajo_stock})
 
 
 @login_required
@@ -53,8 +64,10 @@ def empleado_dashboard(request):
     if request.user.profile.role == 'secretary':
         return HttpResponseForbidden("No tienes permiso para acceder a esta página.")
 
-    productos = Producto.objects.all()
-    return render(request, 'empleado_dashboard.html', {'productos': productos})
+    productos = Producto.objects.select_related('categoria').all()
+    productos_bajo_stock = Producto.objects.filter(stock__lte=5)
+    categorias = Categoria.objects.all()
+    return render(request, 'empleado_dashboard.html', {'productos': productos,'categorias':categorias,'productos_bajo_stock': productos_bajo_stock})
 
 
 class CategoriaViewSet(viewsets.ModelViewSet):
@@ -141,7 +154,8 @@ class CategoriaViewSet(viewsets.ModelViewSet):
     )
     def destroy(self, request, *args, **kwargs):
         return super().destroy(request, *args, **kwargs)
-    
+
+
 class ProductoViewSet(viewsets.ModelViewSet):
     queryset = Producto.objects.all()
     serializer_class = ProductoSerializer
@@ -235,12 +249,16 @@ class ProductoViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         return super().destroy(request, *args, **kwargs)
 
-
-
 class InventarioViewSet(viewsets.ModelViewSet):
     queryset = Inventario.objects.all()
     serializer_class = InventarioSerializer
 
+@login_required
+def eliminar_producto(request, producto_id):
+    producto = get_object_or_404(Producto, id=producto_id)
+    if request.method == 'POST':
+        producto.delete()
+    return "Ok"
 
 @login_required
 def exportar_inventarios_pdf(request):
@@ -322,4 +340,45 @@ def exportar_productos_pdf(request):
 
     p.showPage()
     p.save()
+    return response
+
+def exportar_productos_json(request):
+    productos = Producto.objects.select_related('categoria').all()
+    data = []
+
+    for p in productos:
+        data.append({
+            'id': p.id,
+            'nombre': p.nombre,
+            'descripcion': p.descripcion,
+            'precio': float(p.precio),
+            'stock': p.stock,
+            'categoria': p.categoria.nombre
+        })
+
+    response = HttpResponse(
+        json.dumps(data, indent=4, ensure_ascii=False),
+        content_type='application/json'
+    )
+    response['Content-Disposition'] = 'attachment; filename="productos.json"'
+    return response
+
+def exportar_inventarios_json(request):
+    inventarios = Inventario.objects.select_related('producto').all()
+    data = []
+
+    for i in inventarios:
+        data.append({
+            'id': i.id,
+            'tipo': i.tipo,
+            'producto': i.producto.nombre,
+            'cantidad': i.cantidad,
+            'fecha_actualizacion': i.fecha_actualizacion.isoformat()
+        })
+
+    response = HttpResponse(
+        json.dumps(data, indent=4, ensure_ascii=False),
+        content_type='application/json'
+    )
+    response['Content-Disposition'] = 'attachment; filename="inventarios.json"'
     return response

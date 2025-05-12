@@ -1,0 +1,53 @@
+ <div id="notifications-container">
+        {% for producto in productos_bajo_stock %}
+        <div class="notification bg-red-500 text-white p-4 mb-2 rounded-lg absolute top-0 left-0 transform translate-x-4 -translate-y-4 opacity-0 animate-fadeIn">
+            <span class="font-bold">{{ producto.nombre }}</span>: Stock bajo ({{ producto.stock }} unidades restantes).
+        </div>
+        {% endfor %}
+ </div>
+
+ <style>
+    @keyframes fadeIn {
+        0% {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .animate-fadeIn {
+        animation: fadeIn 0.5s ease-out forwards;
+    }
+
+    .notification {
+        animation-duration: 3s;
+        animation-delay: 1s;
+        margin-bottom: 10px;
+        position: relative;
+    }
+    #notifications-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 9999;
+        margin-top: 80px;
+        margin-left: 20px;
+    }
+
+</style>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const notifications = document.querySelectorAll('.notification');
+        notifications.forEach(notification => {
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateY(-10px)';
+                notification.style.transition = 'opacity 0.5s, transform 0.5s';
+                notification.style.display = 'none';
+            }, 9000);
+        });
+    });
+</script>
