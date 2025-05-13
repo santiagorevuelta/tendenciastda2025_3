@@ -67,10 +67,10 @@
             .then(data => {
                 document.getElementById('categoriaId').value = data.id;
                 document.getElementById('nombreCategoria').value = data.nombre;
+                document.getElementById('modalCategoria').classList.remove('hidden');
             });
         }
 
-        document.getElementById('modalCategoria').classList.remove('hidden');
     }
 
     function cerrarModalCategoria() {

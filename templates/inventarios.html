@@ -106,10 +106,9 @@ async function abrirModalInventario(id = null) {
                 document.getElementById('tipo').value = data.tipo;
                 document.getElementById('producto').value = data.producto;
                 document.getElementById('cantidad').value = data.cantidad;
+                document.getElementById('modalInventario').classList.remove('hidden');
             });
     }
-
-    document.getElementById('modalInventario').classList.remove('hidden');
 }
 
 function cerrarModalInventario() {

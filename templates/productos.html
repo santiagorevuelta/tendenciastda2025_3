@@ -106,10 +106,10 @@
                     document.getElementById('precio').value = data.precio;
                     document.getElementById('stock').value = data.stock;
                     document.getElementById('categoria').value = data.categoria;
+                    document.getElementById('modalProducto').classList.remove('hidden');
                 });
         }
 
-        document.getElementById('modalProducto').classList.remove('hidden');
     }
 
     function cerrarModal() {
