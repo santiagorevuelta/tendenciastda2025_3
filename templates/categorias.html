@@ -1,0 +1,118 @@
+<div class="mx-auto bg-white p-6">
+    <div class="flex justify-between items-center mb-4">
+        <h1 class="text-2xl font-bold text-blue-600">Categorías</h1>
+        <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onclick="abrirModalCategoria()">
+            Nueva Categoría
+        </button>
+    </div>
+
+    <table class="min-w-full table-auto border border-gray-300">
+        <thead class="bg-gray-200 text-gray-700">
+        <tr>
+            <th class="px-4 py-2 border">Nombre</th>
+            <th class="px-4 py-2 border">Acciones</th>
+        </tr>
+        </thead>
+        <tbody id="tabla-categorias">
+        {% for categoria in categorias %}
+        <tr class="hover:bg-gray-100">
+            <td class="px-4 py-2 border">{{ categoria.nombre }}</td>
+            <td class="px-4 py-2 border flex gap-2">
+                <button class="text-blue-500 hover:underline" onclick="abrirModalCategoria({{categoria.id}})">Editar</button>
+                <button class="text-red-500 hover:underline" onclick="eliminarCategoria({{categoria.id}})">Eliminar</button>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal Categoría -->
+<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden" id="modalCategoria">
+    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md relative">
+        <h2 class="text-xl font-bold mb-4" id="titulo-modal-categoria">Nueva Categoría</h2>
+        <form id="formCategoria">
+            <input id="categoriaId" type="hidden">
+            <input class="w-full mb-3 p-2 border rounded" id="nombreCategoria" placeholder="Nombre" required type="text">
+            <div class="flex justify-end space-x-2">
+                <button class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400" onclick="cerrarModalCategoria()" type="button">
+                    Cancelar
+                </button>
+                <button class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" type="submit">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const API_CATEGORIAS = "/api/categorias/";
+
+    async function abrirModalCategoria(id = null) {
+        await refreshToken();
+        const token = sessionStorage.getItem("accessToken");
+        document.getElementById('formCategoria').reset();
+        document.getElementById('categoriaId').value = '';
+        document.getElementById('titulo-modal-categoria').textContent = id ? "Editar Categoría" : "Nueva Categoría";
+
+        if (id) {
+            fetch(API_CATEGORIAS + id + '/', {
+                method: 'GET',
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('categoriaId').value = data.id;
+                document.getElementById('nombreCategoria').value = data.nombre;
+            });
+        }
+
+        document.getElementById('modalCategoria').classList.remove('hidden');
+    }
+
+    function cerrarModalCategoria() {
+        document.getElementById('modalCategoria').classList.add('hidden');
+    }
+
+    document.getElementById('formCategoria').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        await refreshToken();
+        const token = sessionStorage.getItem("accessToken");
+        const id = document.getElementById('categoriaId').value;
+        const data = {
+            nombre: document.getElementById('nombreCategoria').value
+        };
+
+        fetch(API_CATEGORIAS + (id ? `${id}/` : ''), {
+            method: id ? 'PUT' : 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                "Authorization": `Bearer ${token}`,
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify(data)
+        }).then(res => res.json())
+          .then(res => {
+              if(res.id){
+                  cerrarModalCategoria();
+                  window.location.reload();
+              }
+          });
+    });
+
+    async function eliminarCategoria(id) {
+        if (confirm("¿Seguro que deseas eliminar esta categoría?")) {
+            await refreshToken();
+            const token = sessionStorage.getItem("accessToken");
+            fetch(API_CATEGORIAS + id + '/', {
+                method: 'DELETE',
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            }).then(() => window.location.reload());
+        }
+    }
+</script>
