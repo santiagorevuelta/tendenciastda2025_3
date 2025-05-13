@@ -44,7 +44,7 @@ async function refreshToken() {
                 if (data.access) {
                     sessionStorage.setItem('accessToken', data.access);
                 } else {
-                    console.log('No se pudo obtener un nuevo token');
+                    alert('No se pudo obtener un nuevo token');
                 }
             })
             .catch(error => console.error('Error al refrescar el token:', error));

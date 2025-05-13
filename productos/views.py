@@ -47,7 +47,7 @@ def login_view(request):
             return render(request, 'login.html', {'error': 'Credenciales inválidas'})
     return render(request, 'login.html')
 
-@login_required
+@login_required(login_url='/login/')
 def admin_dashboard(request):
     if request.user.profile.role != 'admin':
         return HttpResponseForbidden("No tienes permiso para acceder a esta página.")
@@ -59,7 +59,7 @@ def admin_dashboard(request):
     return render(request, 'admin_dashboard.html', {'productos': productos,'inventarios':inventarios,'categorias':categorias,'productos_bajo_stock': productos_bajo_stock})
 
 
-@login_required
+@login_required(login_url='/login/')
 def empleado_dashboard(request):
     if request.user.profile.role == 'secretary':
         return HttpResponseForbidden("No tienes permiso para acceder a esta página.")
