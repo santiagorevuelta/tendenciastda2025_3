@@ -92,7 +92,8 @@
             fetch(API_URL + id + '/', {
                 method: 'GET',
                 headers: {
-                    "Authorization": `Bearer ${token}`
+                    "Authorization": `Bearer ${token}`,
+                    'X-CSRFToken': getCookie('csrftoken')
                 }
             })
                 .then(res => res.json())
@@ -131,6 +132,7 @@
             headers: {
                 'Content-Type': 'application/json',
                 "Authorization": `Bearer ${token}`,
+                'X-CSRFToken': getCookie('csrftoken')
             },
             body: JSON.stringify(data)
         }).then(res => res.json())
@@ -149,6 +151,7 @@
             fetch(API_URL + id + '/', {
                 method: 'DELETE', headers: {
                     "Authorization": `Bearer ${token}`,
+                    'X-CSRFToken': getCookie('csrftoken')
                 }
             })
                 .then(() => window.location.reload());
