@@ -84,14 +84,16 @@
     const API_URL = "/api/productos/";
 
     async function abrirModal(id = null) {
-        await refreshToken();
-        const token = sessionStorage.getItem("accessToken");
         document.getElementById('formProducto').reset();
         document.getElementById('productoId').value = '';
         document.getElementById('titulo-modal').textContent = id ? "Editar Producto" : "Nuevo Producto";
 
         if (id) {
-            fetch(API_URL + id + '/', {
+            const loader = document.getElementById('loader');
+            loader.classList.remove('hidden');
+            await refreshToken();
+            const token = sessionStorage.getItem("accessToken");
+            await fetch(API_URL + id + '/', {
                 method: 'GET',
                 headers: {
                     "Authorization": `Bearer ${token}`,
@@ -107,7 +109,10 @@
                     document.getElementById('stock').value = data.stock;
                     document.getElementById('categoria').value = data.categoria;
                     document.getElementById('modalProducto').classList.remove('hidden');
+                    loader.classList.add('hidden');
                 });
+        }else{
+            document.getElementById('modalProducto').classList.remove('hidden');
         }
 
     }
@@ -118,6 +123,8 @@
 
     document.getElementById('formProducto').addEventListener('submit', async function (e) {
         e.preventDefault();
+        const loader = document.getElementById('loader');
+        loader.classList.remove('hidden');
         await refreshToken();
         const token = sessionStorage.getItem("accessToken");
         const id = document.getElementById('productoId').value;
@@ -142,12 +149,15 @@
                 if(res.id){
                    cerrarModal();
                    window.location.reload();
+                   loader.classList.add('hidden');
                 }
             });
     });
 
     async function eliminarProducto(id) {
         if (confirm("¿Seguro que deseas eliminar este producto?")) {
+            const loader = document.getElementById('loader');
+            loader.classList.remove('hidden');
             await refreshToken();
             const token = sessionStorage.getItem("accessToken");
             fetch(API_URL + id + '/', {
@@ -156,7 +166,10 @@
                     'X-CSRFToken': getCookie('csrftoken')
                 }
             })
-                .then(() => window.location.reload());
+                .then(() => {
+                    loader.classList.add('hidden');
+                    window.location.reload()
+                });
         }
     }
 

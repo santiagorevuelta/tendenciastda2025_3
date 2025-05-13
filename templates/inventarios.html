@@ -57,6 +57,7 @@
             
             <!-- Tipo de Inventario -->
             <select class="w-full mb-3 p-2 border rounded" id="tipo" required>
+                 <option value="">Seleccione...</option>
                 <option value="entrada">Entrada</option>
                 <option value="salida">Salida</option>
             </select>
@@ -85,15 +86,17 @@
 <script>
 const API_URL_INV = "/api/inventarios/";
 async function abrirModalInventario(id = null) {
-    await refreshToken();
-    const token = sessionStorage.getItem("accessToken");
-
     document.getElementById('formInventario').reset();
     document.getElementById('inventarioId').value = '';
     document.getElementById('titulo-modal-inv').textContent = id !== null ? "Editar Inventario" : "Nuevo Inventario";
 
+
     if (id) {
-        fetch(API_URL_INV + id + '/', {
+        const loader = document.getElementById('loader');
+        loader.classList.remove('hidden');
+        await refreshToken();
+        const token = sessionStorage.getItem("accessToken");
+        await fetch(API_URL_INV + id + '/', {
             method: 'GET',
             headers: {
                 "Authorization": `Bearer ${token}`,
@@ -107,7 +110,10 @@ async function abrirModalInventario(id = null) {
                 document.getElementById('producto').value = data.producto;
                 document.getElementById('cantidad').value = data.cantidad;
                 document.getElementById('modalInventario').classList.remove('hidden');
+                loader.classList.add('hidden');
             });
+    }else{
+       document.getElementById('modalInventario').classList.remove('hidden');
     }
 }
 
@@ -117,6 +123,8 @@ function cerrarModalInventario() {
 
 document.getElementById('formInventario').addEventListener('submit', async function (e) {
     e.preventDefault();
+     const loader = document.getElementById('loader');
+    loader.classList.remove('hidden');
     await refreshToken();
     const token = sessionStorage.getItem("accessToken");
     const id = document.getElementById('inventarioId').value;
@@ -138,6 +146,7 @@ document.getElementById('formInventario').addEventListener('submit', async funct
         .then((res) => {
             if (res.id) {
                 cerrarModalInventario();
+                loader.classList.add('hidden');
                 window.location.reload();
             }
         });
@@ -146,6 +155,8 @@ document.getElementById('formInventario').addEventListener('submit', async funct
 // Eliminar inventario
 async function eliminarInventario(id) {
     if (confirm("¿Seguro que deseas eliminar este inventario?")) {
+         const loader = document.getElementById('loader');
+         loader.classList.remove('hidden');
         await refreshToken();
         const token = sessionStorage.getItem("accessToken");
         fetch(API_URL_INV + id + '/', {
@@ -154,7 +165,10 @@ async function eliminarInventario(id) {
                 'X-CSRFToken': getCookie('csrftoken')
             }
         })
-            .then(() => window.location.reload());
+            .then(() => {
+                loader.classList.add('hidden');
+                window.location.reload()
+            });
     }
 }
 

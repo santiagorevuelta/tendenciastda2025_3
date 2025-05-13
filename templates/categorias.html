@@ -49,14 +49,16 @@
     const API_CATEGORIAS = "/api/categorias/";
 
     async function abrirModalCategoria(id = null) {
-        await refreshToken();
-        const token = sessionStorage.getItem("accessToken");
         document.getElementById('formCategoria').reset();
         document.getElementById('categoriaId').value = '';
         document.getElementById('titulo-modal-categoria').textContent = id ? "Editar Categoría" : "Nueva Categoría";
 
         if (id) {
-            fetch(API_CATEGORIAS + id + '/', {
+            const loader = document.getElementById('loader');
+            loader.classList.remove('hidden');
+            await refreshToken();
+            const token = sessionStorage.getItem("accessToken");
+            await fetch(API_CATEGORIAS + id + '/', {
                 method: 'GET',
                 headers: {
                     "Authorization": `Bearer ${token}`,
@@ -68,7 +70,11 @@
                 document.getElementById('categoriaId').value = data.id;
                 document.getElementById('nombreCategoria').value = data.nombre;
                 document.getElementById('modalCategoria').classList.remove('hidden');
+                 loader.classList.add('hidden');
             });
+
+        }else{
+             document.getElementById('modalCategoria').classList.remove('hidden');
         }
 
     }
@@ -79,6 +85,8 @@
 
     document.getElementById('formCategoria').addEventListener('submit', async function (e) {
         e.preventDefault();
+        const loader = document.getElementById('loader');
+        loader.classList.remove('hidden');
         await refreshToken();
         const token = sessionStorage.getItem("accessToken");
         const id = document.getElementById('categoriaId').value;
@@ -98,6 +106,7 @@
           .then(res => {
               if(res.id){
                   cerrarModalCategoria();
+                  loader.classList.add('hidden');
                   window.location.reload();
               }
           });
@@ -105,6 +114,8 @@
 
     async function eliminarCategoria(id) {
         if (confirm("¿Seguro que deseas eliminar esta categoría?")) {
+             const loader = document.getElementById('loader');
+            loader.classList.remove('hidden');
             await refreshToken();
             const token = sessionStorage.getItem("accessToken");
             fetch(API_CATEGORIAS + id + '/', {
@@ -113,7 +124,10 @@
                     "Authorization": `Bearer ${token}`,
                     'X-CSRFToken': getCookie('csrftoken')
                 }
-            }).then(() => window.location.reload());
+            }).then(() => {
+                loader.classList.add('hidden');
+                window.location.reload()
+            });
         }
     }
 </script>
