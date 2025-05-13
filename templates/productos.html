@@ -2,11 +2,11 @@
     <div class="flex justify-between items-center mb-4">
         <h1 class="text-2xl font-bold text-blue-600">Productos</h1>
         <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onclick="abrirModal()">
-            Nuevo Producto
+            Crear
         </button>
     </div>
-
-    <table class="min-w-full table-auto border border-gray-300">
+      <div class="overflow-x-auto">
+          <table class="min-w-full table-auto border border-gray-300">
         <thead class="bg-gray-200 text-gray-700">
         <tr>
             <th class="px-4 py-2 border">Nombre</th>
@@ -34,15 +34,17 @@
         {% endfor %}
         </tbody>
     </table>
+      </div>
+
     {% if productos %}
         <div class="mt-4 flex justify-end gap-2">
             <a class="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition duration-200" href="{% url 'exportar_productos_pdf' %}"
                target="_blank">
-                Exportar Productos a PDF
+                Exportar PDF
             </a>
             <a class="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition" href="{% url 'exportar_productos_json' %}"
                target="_blank">
-                Exportar Productos JSON
+                Exportar JSON
             </a>
         </div>
     {% endif %}

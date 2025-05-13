@@ -2,44 +2,48 @@
     <div class="flex justify-between items-center mb-4">
         <h1 class="text-2xl font-bold text-blue-600">Inventarios</h1>
         <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onclick="abrirModalInventario()">
-            Nuevo Inventario
+            Crear
         </button>
     </div>
 
-    <table class="min-w-full table-auto border border-gray-300">
-        <thead class="bg-gray-200 text-gray-700">
-        <tr>
-            <th class="px-4 py-2 border">Producto</th>
-            <th class="px-4 py-2 border">Tipo</th>
-            <th class="px-4 py-2 border">Cantidad</th>
-            <th class="px-4 py-2 border">Fecha de Actualización</th>
-            <th class="px-4 py-2 border">Acciones</th>
-        </tr>
-        </thead>
-        <tbody id="tabla-inventarios">
-        {% for inventario in inventarios %}
-        <tr class="hover:bg-gray-100">
-            <td class="px-4 py-2 border">{{ inventario.producto.nombre }}</td>
-            <td class="px-4 py-2 border {% if inventario.tipo == 'entrada' %}text-green-600{% else %}text-red-600{% endif %}">{{ inventario.tipo }}</td>
-            <td class="px-4 py-2 border">{{ inventario.cantidad }}</td>
-            <td class="px-4 py-2 border">{{ inventario.fecha_actualizacion }}</td>
-            <td class="px-4 py-2 border flex gap-2">
-                <button class="text-blue-500 hover:underline" onclick="abrirModalInventario({{inventario.id}})">Editar</button>
-                <button class="text-red-500 hover:underline" onclick="eliminarInventario({{inventario.id}})">Eliminar</button>
-            </td>
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+    <div class="overflow-x-auto">
+        <table class="min-w-full table-auto border border-gray-300">
+            <thead class="bg-gray-200 text-gray-700">
+            <tr>
+                <th class="px-4 py-2 border">Producto</th>
+                <th class="px-4 py-2 border">Tipo</th>
+                <th class="px-4 py-2 border">Cantidad</th>
+                <th class="px-4 py-2 border">Fecha de Actualización</th>
+                <th class="px-4 py-2 border">Acciones</th>
+            </tr>
+            </thead>
+            <tbody id="tabla-inventarios">
+            {% for inventario in inventarios %}
+            <tr class="hover:bg-gray-100">
+                <td class="px-4 py-2 border">{{ inventario.producto.nombre }}</td>
+                <td class="px-4 py-2 border {% if inventario.tipo == 'entrada' %}text-green-600{% else %}text-red-600{% endif %}">{{ inventario.tipo }}</td>
+                <td class="px-4 py-2 border">{{ inventario.cantidad }}</td>
+                <td class="px-4 py-2 border">{{ inventario.fecha_actualizacion }}</td>
+                <td class="px-4 py-2 border">
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <button class="text-blue-500 hover:underline" onclick="abrirModalInventario({{inventario.id}})">Editar</button>
+                        <button class="text-red-500 hover:underline" onclick="eliminarInventario({{inventario.id}})">Eliminar</button>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
     {% if inventarios %}
         <div class="mt-4 flex justify-end gap-2">
             <a href="{% url 'exportar_inventarios_pdf' %}" target="_blank"
                class="bg-indigo-500 text-white px-6 py-2 rounded-lg hover:bg-indigo-600 transition duration-200">
-                Exportar Inventarios a PDF
+                Exportar PDF
             </a>
             <a href="{% url 'exportar_inventarios_json' %}" target="_blank"
                class="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition">
-                Exportar Inventarios JSON
+                Exportar JSON
             </a>
         </div>
     {% endif %}
