@@ -4,6 +4,7 @@
     { "src": "server.py", "use": "@vercel/python" }
   ],
   "routes": [
+    { "src": "/favicon.ico", "dest": "/favicon.ico" },
     { "src": "/(.*)", "dest": "server.py" }
   ]
 }
