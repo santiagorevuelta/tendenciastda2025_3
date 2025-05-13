@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-if5ub79!##r8&th#b*d!6pvjax9a89#ok@rg(4q+p8o66v#0d6'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['.vercel.app', 'localhost']
 
@@ -121,19 +121,19 @@ WSGI_APPLICATION = 'Management.wsgi.application'
 
 ###Configuración de la base de datos
   #Configuración de la base de datos PostgreSQL
-#DATABASES = {
-    #    'default': {
-        #       'ENGINE': 'django.db.backends.postgresql',
-        #       'NAME': 'inventarios',
-        #       'USER': 'inventarios_owner',
-        #       'PASSWORD': 'npg_OaGFeupyTQ61',
-        #       'HOST': 'ep-falling-bird-a8psgl0q-pooler.eastus2.azure.neon.tech',
-        #       'PORT': '5432',
-        #       'OPTIONS': {
-            #            'sslmode': 'require',
-            #        },
-#    }
-#}
+DATABASES = {
+        'default': {
+               'ENGINE': 'django.db.backends.postgresql',
+               'NAME': 'inventarios',
+               'USER': 'inventarios_owner',
+               'PASSWORD': 'npg_OaGFeupyTQ61',
+               'HOST': 'ep-falling-bird-a8psgl0q-pooler.eastus2.azure.neon.tech',
+               'PORT': '5432',
+               'OPTIONS': {
+                     'sslmode': 'require',
+                },
+    }
+}
 
 ###SOLO COMENTANDO LA DATABASE DE POSTGRESQL, PERMITE HACER LAS PRUEBAS EN SQLITE3
 
@@ -142,13 +142,13 @@ WSGI_APPLICATION = 'Management.wsgi.application'
 # DETAIL:  There is 1 other session using the database.
 
 
-DATABASES = {
-    'default':
-        {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
+#DATABASES = {
+#    'default':
+#        {
+#            'ENGINE': 'django.db.backends.sqlite3',
+#            'NAME': BASE_DIR / 'db.sqlite3',
+#        }
+#    }
 
 
 # Password validation
