@@ -28,6 +28,7 @@ DEBUG = True
 ALLOWED_HOSTS = ["*"]
 
 
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -43,8 +44,6 @@ INSTALLED_APPS = [
     'drf_yasg',
     'usuarios',
 ]
-
-
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -116,7 +115,6 @@ TEMPLATES = [
     },
 ]
 
-
 WSGI_APPLICATION = 'Management.wsgi.application'
 
 ###Configuración de la base de datos
@@ -149,7 +147,6 @@ DATABASES = {
 #            'NAME': BASE_DIR / 'db.sqlite3',
 #        }
 #    }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -187,12 +184,13 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
 CSRF_TRUSTED_ORIGINS = [
     'https://tendenciastda2025.fly.dev'
 ]
+

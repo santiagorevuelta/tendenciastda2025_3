@@ -1,0 +1,30 @@
+# .gitignore
+# Entornos virtuales
+venv/
+.env/
+.env*/
+
+# Django
+*.log
+*.pot
+*.pyc
+__pycache__/
+db.sqlite3
+media/
+
+# Configuraciones sensibles
+.env
+secrets.json
+
+# IDE
+.idea/
+.vscode/
+
+# Migraciones (opcional, algunos prefieren incluirlas)
+# */migrations/*.py
+# !*/migrations/__init__.py
+
+# Otros
+.DS_Store
+*.swp
+*.swo
