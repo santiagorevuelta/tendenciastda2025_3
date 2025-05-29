@@ -32,6 +32,7 @@ ALLOWED_HOSTS = ["*"]
 # Application definition
 
 INSTALLED_APPS = [
+    'django_prometheus',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -45,6 +46,7 @@ INSTALLED_APPS = [
     'usuarios',
 ]
 MIDDLEWARE = [
+    'django_prometheus.middleware.PrometheusBeforeMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -53,6 +55,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'Management.middleware.logging_middleware.RequestLoggingMiddleware',
+    'django_prometheus.middleware.PrometheusAfterMiddleware',
 ]
 
 
@@ -213,36 +216,22 @@ LOGGING = {
     },
     'handlers': {
         'file': {
-            'level': 'INFO',
+            'level': 'DEBUG',
             'class': 'logging.FileHandler',
-            'filename': BASE_DIR / 'logs' / 'django.log',
-            'formatter': 'verbose',
+            'filename': 'debug.log',
+            'formatter': 'verbose'
         },
         'console': {
-            'level': 'DEBUG',
+            'level': 'INFO',
             'class': 'logging.StreamHandler',
-            'formatter': 'simple',
-        },
-        'error_file': {
-            'level': 'ERROR',
-            'class': 'logging.FileHandler',
-            'filename': BASE_DIR / 'logs' / 'errors.log',
-            'formatter': 'verbose',
+            'formatter': 'simple'
         },
     },
     'loggers': {
-        'django': {
-            'handlers': ['file', 'console', 'error_file'],
-            'level': 'INFO',
+        '': {
+            'handlers': ['file', 'console'],
+            'level': 'DEBUG',
             'propagate': True,
-        },
-        'productos': {
-            'handlers': ['file', 'console', 'error_file'],
-            'level': 'DEBUG',
-        },
-        'usuarios': {
-            'handlers': ['file', 'console', 'error_file'],
-            'level': 'DEBUG',
         },
     },
 }
