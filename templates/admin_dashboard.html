@@ -1,75 +1,88 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
+
 <body class="bg-gray-100 min-h-screen p-6">
-<header class="bg-white shadow mb-6">
-    <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-        <div class="flex items-center gap-4">
-            <h1 class="text-xl font-semibold text-gray-800">Bienvenido, {{ request.user.username }}</h1>
+    <header class="bg-white shadow mb-6">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <h1 class="text-xl font-semibold text-gray-800">Bienvenido, {{ request.user.username }}</h1>
+                <a href="{% url 'view_logs' %}"
+                    class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd"
+                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9z"
+                            clip-rule="evenodd" />
+                    </svg>
+                    Ver Logs
+                </a>
+            </div>
+            <form action="{% url 'logout' %}" method="POST">
+                {% csrf_token %}
+                <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+                    Cerrar sesión
+                </button>
+            </form>
         </div>
-        <form action="{% url 'logout' %}" method="POST">
-            {% csrf_token %}
-            <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
-                Cerrar sesión
-            </button>
-        </form>
+    </header>
+    <div class="mx-auto bg-white p-6 rounded-xl shadow-md">
+        <h1 class="text-3xl font-bold text-blue-600 mb-6">Panel de Administrador</h1>
+        {% include "categorias.html" %}
+        {% include "productos.html" %}
+        {% include "inventarios.html" %}
+        {% include "notify.html" %}
+        <div id="loader" class="fixed inset-0 bg-white bg-opacity-75 flex items-center justify-center z-50 hidden">
+            <svg class="animate-spin h-10 w-10 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none"
+                viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+            </svg>
+        </div>
     </div>
-</header>
-<div class="mx-auto bg-white p-6 rounded-xl shadow-md">
-    <h1 class="text-3xl font-bold text-blue-600 mb-6">Panel de Administrador</h1>
-    {% include "categorias.html" %}
-    {% include "productos.html" %}
-    {% include "inventarios.html" %}
-    {% include "notify.html" %}
-    <div id="loader" class="fixed inset-0 bg-white bg-opacity-75 flex items-center justify-center z-50 hidden">
-      <svg class="animate-spin h-10 w-10 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-      </svg>
-    </div>
-</div>
 </body>
 <script>
-async function refreshToken() {
-    const refreshToken = sessionStorage.getItem("refreshToken");
-    if (refreshToken) {
-        await fetch('/api/token/refresh/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({refresh: refreshToken})
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.access) {
-                    sessionStorage.setItem('accessToken', data.access);
-                } else {
-                    alert('No se pudo obtener un nuevo token');
-                }
+    async function refreshToken() {
+        const refreshToken = sessionStorage.getItem("refreshToken");
+        if (refreshToken) {
+            await fetch('/api/token/refresh/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ refresh: refreshToken })
             })
-            .catch(error => console.error('Error al refrescar el token:', error));
-    }
-}
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (const element of cookies) {
-            const cookie = element.trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
+                .then(response => response.json())
+                .then(data => {
+                    if (data.access) {
+                        sessionStorage.setItem('accessToken', data.access);
+                    } else {
+                        alert('No se pudo obtener un nuevo token');
+                    }
+                })
+                .catch(error => console.error('Error al refrescar el token:', error));
         }
     }
-    return cookieValue;
-}
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (const element of cookies) {
+                const cookie = element.trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
 
 </script>
+
 </html>

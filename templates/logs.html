@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registros del Sistema</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .log-entry {
+            font-family: monospace;
+            white-space: pre;
+            margin-bottom: 0.25rem;
+            line-height: 1.25;
+        }
+        .log-info { color: #3b82f6; }
+        .log-warning { color: #f59e0b; }
+        .log-error { color: #ef4444; }
+        .log-debug { color: #10b981; }
+    </style>
+</head>
+<body class="bg-gray-100">
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">Registros del Sistema</h1>
+        <div class="flex gap-2">
+            <a href="{% url 'admin_dashboard' %}" 
+               class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+                Volver al Panel
+            </a>
+            <a href="{% url 'export_logs_pdf' %}" 
+               class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">
+                Exportar PDF
+            </a>
+            <form method="post" action="{% url 'clear_logs' %}">
+                {% csrf_token %}
+                <button type="submit" 
+                        class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
+                        onclick="return confirm('¿Estás seguro de que deseas borrar todos los logs?')">
+                    Borrar Logs
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Logs generales -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold text-gray-700">Registros de Actividad</h2>
+                <span class="text-sm text-gray-500">{{ logs|length }} registros</span>
+            </div>
+            <div class="bg-gray-100 p-4 rounded-lg h-[600px] overflow-y-auto">
+                {% for log in logs %}
+                    <div class="log-entry 
+                        {% if 'ERROR' in log %}log-error
+                        {% elif 'WARNING' in log %}log-warning
+                        {% elif 'INFO' in log %}log-info
+                        {% elif 'DEBUG' in log %}log-debug
+                        {% endif %}">
+                        {{ log|safe }}
+                    </div>
+                {% empty %}
+                    <div class="text-gray-500 italic">No hay registros de actividad disponibles</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Errores -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold text-gray-700">Registros de Error</h2>
+                <span class="text-sm text-gray-500">{{ errors|length }} errores</span>
+            </div>
+            <div class="bg-gray-100 p-4 rounded-lg h-[600px] overflow-y-auto">
+                {% for error in errors %}
+                    <div class="log-entry log-error">
+                        {{ error|safe }}
+                    </div>
+                {% empty %}
+                    <div class="text-gray-500 italic">No hay registros de error disponibles</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

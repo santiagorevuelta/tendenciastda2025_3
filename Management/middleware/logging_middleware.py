@@ -11,29 +11,26 @@ class RequestLoggingMiddleware(MiddlewareMixin):
         return None
 
     def process_response(self, request, response):
-        # Calcular tiempo de respuesta
         duration = time.time() - request.start_time
-
-        # Loggear información de la solicitud
-        log_data = {
+        
+        extra = {
+            'user': getattr(request.user, 'username', 'anonymous'),
+            'ip': request.META.get('REMOTE_ADDR'),
             'method': request.method,
             'path': request.path,
             'status_code': response.status_code,
-            'duration': duration,
-            'user': getattr(request.user, 'username', 'anonymous'),
-            'remote_addr': request.META.get('REMOTE_ADDR'),
+            'duration': duration
         }
-
+        
         logger.info(
-            f"{request.method} {request.path} - Status: {response.status_code} "
-            f"- Duration: {duration:.2f}s - User: {log_data['user']}"
+            f"{request.method} {request.path} - Status: {response.status_code}",
+            extra=extra
         )
 
-        # Loggear errores
         if response.status_code >= 400:
             logger.error(
-                f"Error {response.status_code} on {request.method} {request.path} - "
-                f"User: {log_data['user']} - IP: {log_data['remote_addr']}"
+                f"Error {response.status_code} on {request.method} {request.path}",
+                extra=extra
             )
 
         return response

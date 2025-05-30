@@ -6,6 +6,7 @@ from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
+from .views import view_logs, export_logs_pdf, clear_logs
 
 router = routers.DefaultRouter()
 router.register('productos', ProductoViewSet)
@@ -25,6 +26,10 @@ urlpatterns = [
     path('exportar-productos-pdf/', views.exportar_productos_pdf, name='exportar_productos_pdf'),
     path('exportar_productos_json/', views.exportar_productos_json, name='exportar_productos_json'),
     path('exportar_inventarios_json/', views.exportar_inventarios_json, name='exportar_inventarios_json'),
+    #logs
+    path('logs/', view_logs, name='view_logs'),
+    path('logs/export-pdf/', export_logs_pdf, name='export_logs_pdf'),
+    path('logs/clear/', clear_logs, name='clear_logs'),
     # urls.py
     path('productos/eliminar/<int:producto_id>/', views.eliminar_producto, name='eliminar_producto'),
 ]

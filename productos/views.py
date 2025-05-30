@@ -14,6 +14,13 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
+import os
+from django.contrib.auth.decorators import user_passes_test
+from django.shortcuts import render
+from io import BytesIO  # Añade esta línea al inicio del archivo
+from django.utils import timezone  # También necesaria para la fecha
+from django.contrib import messages
+
 
 # Configuración de logging
 logger = logging.getLogger(__name__)
@@ -429,3 +436,126 @@ def exportar_inventarios_json(request):
     except Exception as e:
         logger.error(f"Error al generar JSON de inventarios - Error: {str(e)}")
         return JsonResponse({'error': str(e)}, status=500)
+    
+@login_required
+@user_passes_test(lambda u: u.profile.role == 'admin')
+def view_logs(request):
+    if not request.user.profile.role == 'admin':
+        logger.warning(f"Intento de acceso no autorizado a logs - Usuario: {request.user.username}")
+        return HttpResponseForbidden("No tienes permiso para acceder a esta página.")
+    
+    log_file_path = os.path.join(settings.BASE_DIR, 'logs/django.log')
+    error_log_path = os.path.join(settings.BASE_DIR, 'logs/errors.log')
+    
+    logs = []
+    errors = []
+    
+    try:
+        with open(log_file_path, 'r', encoding='latin-1') as f:  # Cambiado a latin-1
+            logs = f.readlines()[-500:]  # Últimas 500 líneas
+    except FileNotFoundError:
+        logger.error("Archivo de logs no encontrado")
+        logs = ["No se encontró el archivo de logs\n"]
+    
+    try:
+        with open(error_log_path, 'r', encoding='latin-1') as f:  # Cambiado a latin-1
+            errors = f.readlines()[-500:]  # Últimas 500 líneas
+    except FileNotFoundError:
+        logger.error("Archivo de errores no encontrado")
+        errors = ["No se encontró el archivo de errores\n"]
+    
+    context = {
+        'logs': logs,
+        'errors': errors,
+    }
+    
+    return render(request, 'logs.html', context)
+
+
+
+@login_required
+@user_passes_test(lambda u: u.profile.role == 'admin')
+def export_logs_pdf(request):
+    """Exportar logs a PDF"""
+    if not request.user.profile.role == 'admin':
+        return HttpResponseForbidden("No tienes permiso para realizar esta acción.")
+    
+    log_file_path = os.path.join(settings.BASE_DIR, 'logs/django.log')
+    error_log_path = os.path.join(settings.BASE_DIR, 'logs/errors.log')
+    
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="logs_exportados.pdf"'
+    
+    buffer = BytesIO()
+    p = canvas.Canvas(buffer, pagesize=letter)
+    
+    # Configuración inicial
+    p.setFont("Helvetica", 10)
+    p.drawString(100, 750, "Reporte de Logs del Sistema")
+    p.drawString(100, 735, f"Generado el: {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    p.drawString(100, 720, f"Por usuario: {request.user.username}")
+    
+    y_position = 700  # Posición inicial para los logs
+    
+    # Función para agregar texto con manejo de paginación
+    def add_text(text, y):
+        if y < 50:  # Si queda poco espacio, crea nueva página
+            p.showPage()
+            p.setFont("Helvetica", 10)
+            return 750  # Retorna nueva posición Y
+        p.drawString(50, y, text)
+        return y - 15
+    
+    # Leer y agregar logs normales
+    try:
+        with open(log_file_path, 'r', encoding='latin-1') as f:
+            p.setFont("Helvetica-Bold", 12)
+            y_position = add_text("LOGS DE ACTIVIDAD:", y_position)
+            p.setFont("Helvetica", 10)
+            
+            for line in f.readlines()[-500:]:
+                y_position = add_text(line.strip(), y_position)
+    except FileNotFoundError:
+        y_position = add_text("No se encontró el archivo de logs", y_position)
+    
+    # Leer y agregar errores
+    try:
+        with open(error_log_path, 'r', encoding='latin-1') as f:
+            p.setFont("Helvetica-Bold", 12)
+            y_position = add_text("\nLOGS DE ERROR:", y_position)
+            p.setFont("Helvetica", 10)
+            
+            for line in f.readlines()[-500:]:
+                y_position = add_text(line.strip(), y_position)
+    except FileNotFoundError:
+        y_position = add_text("No se encontró el archivo de errores", y_position)
+    
+    p.showPage()
+    p.save()
+    
+    pdf = buffer.getvalue()
+    buffer.close()
+    response.write(pdf)
+    
+    return response
+
+@login_required
+@user_passes_test(lambda u: u.profile.role == 'admin')
+def clear_logs(request):
+    """Borrar todos los logs"""
+    if not request.user.profile.role == 'admin':
+        return HttpResponseForbidden("No tienes permiso para realizar esta acción.")
+    
+    log_file_path = os.path.join(settings.BASE_DIR, 'logs/django.log')
+    error_log_path = os.path.join(settings.BASE_DIR, 'logs/errors.log')
+    
+    try:
+        # Vaciar archivo de logs
+        open(log_file_path, 'w').close()
+        open(error_log_path, 'w').close()
+        messages.success(request, "Los logs han sido borrados exitosamente.")
+    except Exception as e:
+        messages.error(request, f"Error al borrar logs: {str(e)}")
+    
+    return redirect('view_logs')
+
